@@ -1,0 +1,7 @@
+# AetherBloom is intentionally dependency-light.
+# Core simulation runs on pure Python 3.10+.
+
+# Optional future enhancements:
+# fastapi>=0.110
+# uvicorn
+# httpx
