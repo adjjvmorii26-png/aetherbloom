@@ -95,7 +95,7 @@ class Lattice:
         return events
 
     def _try_connect(self) -> List[str]:
-        """Form or strengthen connections based on resonance."""
+        """Form connections or trigger cross-pollination events."""
         events = []
         ids = [b.id for b in self.blooms.values()
                if b.state not in (BloomState.COLLAPSED, BloomState.TRANSCENDED)]
@@ -104,16 +104,29 @@ class Lattice:
 
         a, b = random.sample(ids, 2)
         res = self.entropy.resonance(a, b)
-        if res > 0.55:
-            bloom_a = self.blooms[a]
-            bloom_b = self.blooms[b]
-            if b not in bloom_a.connections:
-                bloom_a.connections.append(b)
-                bloom_b.connections.append(a)
-                events.append(f"✧ connection formed: {a} ↔ {b} (resonance {res:.2f})")
-                # exchange a little energy
-                bloom_a.energy = min(1.0, bloom_a.energy + 0.08)
-                bloom_b.energy = min(1.0, bloom_b.energy + 0.08)
+        bloom_a = self.blooms[a]
+        bloom_b = self.blooms[b]
+
+        if res > 0.55 and b not in bloom_a.connections:
+            bloom_a.connections.append(b)
+            bloom_b.connections.append(a)
+            events.append(f"✧ connection formed: {a} ↔ {b} (resonance {res:.2f})")
+            bloom_a.energy = min(1.0, bloom_a.energy + 0.08)
+            bloom_b.energy = min(1.0, bloom_b.energy + 0.08)
+
+        # Cross-pollination: stronger resonance can transfer insight
+        if res > 0.7 and random.random() < 0.4:
+            if bloom_a.insight_log and bloom_b.state == BloomState.FLOWERING:
+                fragment = bloom_a.insight_log[-1]
+                bloom_b.absorb_pollen(fragment)
+                events.append(f"❀ cross-pollination: {a} → {b}")
+                self.pollen.release(f"shared: {fragment[:50]}", origin=a, tags=["cross"])
+            elif bloom_b.insight_log and bloom_a.state == BloomState.FLOWERING:
+                fragment = bloom_b.insight_log[-1]
+                bloom_a.absorb_pollen(fragment)
+                events.append(f"❀ cross-pollination: {b} → {a}")
+                self.pollen.release(f"shared: {fragment[:50]}", origin=b, tags=["cross"])
+
         return events
 
     def status(self) -> str:

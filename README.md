@@ -9,33 +9,37 @@ Each seed germinates into a **Bloom** — a small autonomous agent that:
 - mutates under entropy pressure  
 - leaves pollen trails that influence neighbors  
 - forms symbiotic clusters or competes for attention energy  
+- cross-pollinates insights with resonant neighbors  
 - eventually dies, seeds new generations, or transcends into a persistent archetype
 
 The garden itself has **physics**: novelty budgets, resonance fields, and an ever-shifting lattice of connections.  
-Watch it evolve in the terminal or as generative SVG art.
+It remembers. You can save it, leave, and return later.  
+It draws itself as generative SVG art.
 
 ---
-
-## Why this exists
-
-Most AI tools are conversation endpoints.  
-AetherBloom is a **place** — a persistent, growing ecology of ideas that lives even when you step away.
-
-It is deliberately lightweight, local-first, and weird on purpose.
 
 ## Quick start
 
 ```bash
-# clone
 git clone https://github.com/adjjvmorii26-png/aetherbloom.git
 cd aetherbloom
 
 # pure python, zero heavy deps
-python -m aetherbloom.garden
+python garden.py
 
-# or plant a custom seed
-python -m aetherbloom.garden --seed "what if gravity was a conversation?"
+# plant your own seeds
+python garden.py \
+  --seed "what if gravity was a conversation?" \
+  --seed "the last color before night"
+
+# run 40 ticks then auto-save + SVG
+python garden.py --ticks 40 --delay 0.4
+
+# later: restore the living garden
+python garden.py --load garden_state.json
 ```
+
+On exit (or ctrl-c) the garden automatically saves to `garden_state.json` and renders `garden_lattice.svg`.
 
 ## Core concepts
 
@@ -45,33 +49,37 @@ python -m aetherbloom.garden --seed "what if gravity was a conversation?"
 | **Bloom** | An autonomous agent that grows from a seed |
 | **Pollen** | Fragments of insight a bloom leaves behind |
 | **Resonance** | How strongly two blooms attract or repel |
+| **Cross-pollination** | Direct transfer of insight between resonant blooms |
 | **Entropy budget** | How much chaos a bloom is allowed before it collapses or mutates |
 | **Lattice** | The living graph of all blooms and their connections |
+| **Transcendence** | Rare event: a bloom becomes a permanent archetype |
 
-## Architecture (v0.1)
+## Architecture
 
 ```
 aetherbloom/
 ├── core/
-│   ├── bloom.py        # single bloom agent
-│   ├── lattice.py      # the garden graph + physics
-│   ├── entropy.py      # novelty & budget systems
-│   └── pollen.py       # trails & inheritance
-├── blooms/             # specialized bloom types (future)
-├── viz/                # terminal + SVG renderers
+│   ├── bloom.py         # single bloom agent + lifecycle
+│   ├── lattice.py       # garden graph + physics + cross-pollination
+│   ├── entropy.py       # novelty & budget systems
+│   ├── pollen.py        # trails & inheritance
+│   └── persistence.py   # JSON save / load
+├── viz/
+│   └── svg_lattice.py   # generative SVG renderer
 ├── examples/
-└── garden.py           # main entry point
+├── garden.py            # main CLI entry point
+└── README.md
 ```
 
-## Roadmap (living)
+## Roadmap
 
 - [x] Core bloom + lattice physics
 - [x] Terminal garden viewer
-- [ ] SVG generative art export
-- [ ] Cross-pollination events
-- [ ] Persistent garden state (JSON / SQLite)
+- [x] Cross-pollination events
+- [x] Persistent garden state (JSON)
+- [x] SVG generative art export
 - [ ] Optional LLM-backed mutation (when API key present)
-- [ ] Web garden viewer (lightweight)
+- [ ] Lightweight web garden viewer
 - [ ] Multiplayer pollen sharing
 
 ## Philosophy
