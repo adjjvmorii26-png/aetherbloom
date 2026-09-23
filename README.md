@@ -14,7 +14,8 @@ Each seed germinates into a **Bloom** — a small autonomous agent that:
 
 The garden itself has **physics**: novelty budgets, resonance fields, and an ever-shifting lattice of connections.  
 It remembers. You can save it, leave, and return later.  
-It draws itself as generative SVG art.
+It draws itself as generative SVG art.  
+It can run in the terminal or as a live web garden.
 
 ---
 
@@ -24,7 +25,7 @@ It draws itself as generative SVG art.
 git clone https://github.com/adjjvmorii26-png/aetherbloom.git
 cd aetherbloom
 
-# pure python, zero heavy deps
+# terminal garden (pure python, zero deps)
 python garden.py
 
 # plant your own seeds
@@ -35,11 +36,32 @@ python garden.py \
 # run 40 ticks then auto-save + SVG
 python garden.py --ticks 40 --delay 0.4
 
-# later: restore the living garden
+# restore a previous garden
 python garden.py --load garden_state.json
 ```
 
-On exit (or ctrl-c) the garden automatically saves to `garden_state.json` and renders `garden_lattice.svg`.
+### Live web garden
+
+```bash
+python web_garden.py
+# → open http://127.0.0.1:8765
+```
+
+Watch blooms grow in real time, plant new seeds from the browser, and see the lattice redraw itself.
+
+### Optional LLM mutations
+
+If you set any of these environment variables, blooms will request richer mutations from an LLM (falls back to built-in poetry otherwise):
+
+```bash
+export XAI_API_KEY=...      # preferred (Grok)
+# or OPENAI_API_KEY=...
+# or ANTHROPIC_API_KEY=...
+
+python garden.py --ticks 30
+```
+
+No extra packages required — uses the standard library.
 
 ## Core concepts
 
@@ -63,12 +85,13 @@ aetherbloom/
 │   ├── lattice.py       # garden graph + physics + cross-pollination
 │   ├── entropy.py       # novelty & budget systems
 │   ├── pollen.py        # trails & inheritance
-│   └── persistence.py   # JSON save / load
+│   ├── persistence.py   # JSON save / load
+│   └── llm_mutate.py    # optional LLM-backed mutations
 ├── viz/
 │   └── svg_lattice.py   # generative SVG renderer
-├── examples/
-├── garden.py            # main CLI entry point
-└── README.md
+├── garden.py            # terminal CLI
+├── web_garden.py        # live web viewer (stdlib HTTP server)
+└── examples/
 ```
 
 ## Roadmap
@@ -78,9 +101,10 @@ aetherbloom/
 - [x] Cross-pollination events
 - [x] Persistent garden state (JSON)
 - [x] SVG generative art export
-- [ ] Optional LLM-backed mutation (when API key present)
-- [ ] Lightweight web garden viewer
+- [x] Optional LLM-backed mutation
+- [x] Lightweight web garden viewer
 - [ ] Multiplayer pollen sharing
+- [ ] Bloom archetypes as reusable seeds
 
 ## Philosophy
 
