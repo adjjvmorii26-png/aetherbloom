@@ -42,48 +42,39 @@ class Lattice:
         self.tick_count += 1
         events: List[str] = []
 
-        # 1. age every bloom + collect insights
         active_ids = list(self.blooms.keys())
         for bid in active_ids:
             bloom = self.blooms[bid]
             if bloom.state in (BloomState.COLLAPSED, BloomState.TRANSCENDED):
                 continue
 
-            # gather nearby pollen content
             nearby = [g.content for g in self.pollen.nearby(bid, limit=3)]
             e = self.entropy.tick(bid, activity=0.1 if nearby else 0.05)
 
             insight = bloom.grow(pollen_nearby=nearby, entropy=e)
             if insight:
                 events.append(f"{bloom.id}: {insight}")
-                # release some pollen
                 if random.random() < 0.45:
                     self.pollen.release(insight, origin=bid)
 
-            # rare transcendence
             if bloom.try_transcend():
                 events.append(f"✦ {bloom.id} transcended → archetype: {bloom.archetype}")
                 self.pollen.release(f"ARCHETYPE: {bloom.archetype}", origin=bid, tags=["transcendent"])
 
-            # forced mutation from high entropy
             if self.entropy.should_mutate(bid) and bloom.state == BloomState.FLOWERING:
-                insight = bloom._mutate()
+                insight = bloom._mutate(entropy=e)
                 events.append(f"{bloom.id}: {insight}")
                 self.entropy.inject_novelty(bid, 0.4)
 
-            # collapse
             if self.entropy.should_collapse(bid):
                 bloom.state = BloomState.COLLAPSED
                 events.append(f"{bloom.id}: collapsed under entropy overload")
 
-        # 2. pollen decay
         self.pollen.tick()
 
-        # 3. occasional cross-pollination / connection formation
         if len(self.blooms) >= 2 and random.random() < 0.25:
             events.extend(self._try_connect())
 
-        # 4. spontaneous new seed from strong pollen (rare)
         if self.tick_count > 15 and random.random() < 0.06:
             theme = self.pollen.strongest_theme()
             if theme:
@@ -114,7 +105,6 @@ class Lattice:
             bloom_a.energy = min(1.0, bloom_a.energy + 0.08)
             bloom_b.energy = min(1.0, bloom_b.energy + 0.08)
 
-        # Cross-pollination: stronger resonance can transfer insight
         if res > 0.7 and random.random() < 0.4:
             if bloom_a.insight_log and bloom_b.state == BloomState.FLOWERING:
                 fragment = bloom_a.insight_log[-1]
