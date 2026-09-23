@@ -20,7 +20,6 @@ class BloomState(Enum):
     COLLAPSED = auto()
 
 
-# Simple internal concept generators (no external LLM required for core life)
 MUTATION_FRAGMENTS = [
     "echoes of forgotten geometry",
     "the quiet violence of stillness",
@@ -55,30 +54,24 @@ class Bloom:
     generation: int = 0
     energy: float = 1.0
     insight_log: List[str] = field(default_factory=list)
-    connections: List[str] = field(default_factory=list)  # other bloom ids
+    connections: List[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
     last_mutation: Optional[str] = None
-    archetype: Optional[str] = None  # set when transcended
+    archetype: Optional[str] = None
 
     def __post_init__(self):
         if not self.insight_log:
             self.insight_log.append(f"seed planted: {self.seed}")
 
     def grow(self, pollen_nearby: List[str] = None, entropy: float = 0.4) -> Optional[str]:
-        """
-        One growth tick. Returns a new insight string if something happened,
-        or None if quiet.
-        """
         self.age += 1
         pollen_nearby = pollen_nearby or []
 
         if self.state == BloomState.COLLAPSED or self.state == BloomState.TRANSCENDED:
             return None
 
-        # energy slowly drains, activity restores some
         self.energy = max(0.0, self.energy - 0.03 + random.uniform(0, 0.05))
 
-        # state transitions
         if self.state == BloomState.SEED and self.age > 2:
             self.state = BloomState.SPROUTING
             insight = f"sprouts: {self.seed} begins to unfold"
@@ -87,17 +80,21 @@ class Bloom:
 
         if self.state == BloomState.SPROUTING and self.age > 6:
             self.state = BloomState.FLOWERING
-            insight = f"flowers: {random.choice(MUTATION_FRAGMENTS)}"
+            try:
+                from .llm_mutate import mutate_insight
+                frag = mutate_insight(self.seed, self.insight_log, entropy)
+            except Exception:
+                frag = random.choice(MUTATION_FRAGMENTS)
+            insight = f"flowers: {frag}"
             self.insight_log.append(insight)
             return insight
 
         if self.state == BloomState.FLOWERING:
             if entropy > 0.75 and random.random() < 0.3:
-                return self._mutate()
+                return self._mutate(entropy=entropy)
             if self.energy < 0.25:
                 self.state = BloomState.WILTING
                 return "begins to wilt under low energy"
-            # normal growth
             if random.random() < 0.4:
                 frag = random.choice(MUTATION_FRAGMENTS)
                 if pollen_nearby and random.random() < 0.5:
@@ -120,16 +117,19 @@ class Bloom:
 
         return None
 
-    def _mutate(self) -> str:
+    def _mutate(self, entropy: float = 0.5) -> str:
         self.state = BloomState.MUTATING
-        new_direction = random.choice(MUTATION_FRAGMENTS)
+        try:
+            from .llm_mutate import mutate_insight
+            new_direction = mutate_insight(self.seed, self.insight_log, entropy)
+        except Exception:
+            new_direction = random.choice(MUTATION_FRAGMENTS)
         self.last_mutation = f"mutates → {new_direction}"
         self.insight_log.append(self.last_mutation)
         self.energy = min(1.0, self.energy + 0.3)
         return self.last_mutation
 
     def try_transcend(self) -> bool:
-        """Rare event: bloom becomes a permanent archetype."""
         if self.age > 25 and self.energy > 0.7 and random.random() < 0.08:
             self.state = BloomState.TRANSCENDED
             self.archetype = self.insight_log[-1] if self.insight_log else self.seed
